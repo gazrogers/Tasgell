@@ -16,12 +16,12 @@ $app->get('/task/[0-9]+/?', function () use($app) {
     echo '';
 });
 $app->post('/task/update', function () use($app) {	
-    $app->response->setStatusCode(501, "Not Implemented")->sendHeaders();
-    echo '';
+    $tasks = $app->di->get('Model\\BusinessLogic\\Tasks');
+    $tasks->update($app->request->getRawBody());
 });
 $app->post('/task/create', function () use($app) {
     $tasks = $app->di->get('Model\\BusinessLogic\\Tasks');
-    return $tasks->create($app->request->getRawBody());
+    $tasks->create($app->request->getRawBody());
 });
 $app->post('/task/delete', function () use($app) {
     $app->response->setStatusCode(501, "Not Implemented")->sendHeaders();

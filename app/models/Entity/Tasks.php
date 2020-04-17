@@ -145,7 +145,7 @@ class Tasks extends \Phalcon\Mvc\Model
                 'alias' => 'ParentTask',
                 'foreignKey' => [
                     'allowNulls' => true,
-                    'message' => "Parent task must exist"
+                    'message' => "Specified parent task does not exist"
                 ]
             ]
         );
