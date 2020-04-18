@@ -5,9 +5,9 @@
 # If you need both WebDriver and PHPBrowser tests - create a separate suite.
 
 actor: AcceptanceTester
-modules:
-    enabled:
-        - PhpBrowser:
-            url: http://localhost/myapp
-        - \Helper\Acceptance
-    step_decorators: ~        
+# modules:
+#     enabled:
+#         - PhpBrowser:
+#             url: 'http://localhost:9000'
+#         - \Helper\Acceptance
+#     step_decorators: ~        

@@ -3,18 +3,17 @@
 use Phalcon\Di\FactoryDefault;
 use Phalcon\Mvc\Micro;
 
-error_reporting(E_ALL);
-
-define('BASE_PATH', dirname(__DIR__));
-define('APP_PATH', BASE_PATH . '/app');
-
 try {
-
     /**
      * The FactoryDefault Dependency Injector automatically registers the services that
      * provide a full stack framework. These default services can be overidden with custom ones.
      */
     $di = new FactoryDefault();
+
+    /**
+     * Set environment constants
+     */
+    require_once realpath(dirname(dirname(__FILE__))) . '/app/config/env.php';
 
     /**
      * Include Services
@@ -48,6 +47,8 @@ try {
     $app->handle();
 
 } catch (\Exception $e) {
-      echo $e->getMessage() . '<br>';
-      echo '<pre>' . $e->getTraceAsString() . '</pre>';
+    $error =  $e->getMessage() . "\n";
+    $error .= $e->getTraceAsString();
+    $logger = $di->get('logger');
+    $logger->error($error);
 }

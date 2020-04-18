@@ -18,3 +18,15 @@ modules:
 extensions:
     enabled:
         - Codeception\Extension\RunFailed
+coverage:
+    enabled: true
+    whitelist:
+        include:
+            - app/*
+        exclude:
+            - app/config/*
+            - app/views/*
+            - app/migrations/*
+            - app/logs/*
+            - tests/*
+            - /**.volt

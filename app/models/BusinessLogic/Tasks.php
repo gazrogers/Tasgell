@@ -6,6 +6,8 @@ use Phalcon\Mvc\User\Component;
 
 use Library\Exceptions\BadRequest;
 use Library\Exceptions\UnsupportedMediaType;
+use Library\Exceptions\NotFound;
+use Library\Exceptions\NotImplemented;
 
 use Model\Entity\Tasks as TasksModel;
 
@@ -14,12 +16,11 @@ class Tasks extends Component
     /**
      * Create a new task
      * 
-     * @param string $jsonInput a JSON string containing the task data
-     * 
      * @return nothing
      */
-    public function create(string $jsonInput)
+    public function create()
     {
+        $jsonInput = $this->request->getRawBody();
         if(!is_null($inputData = json_decode($jsonInput, true)))
         {
             $this->validate($inputData, 'create');
@@ -32,10 +33,7 @@ class Tasks extends Component
             );
             if($task->create())
             {
-                $response = new Response();
-                $response->setStatusCode(200, 'OK');
-                $response->setJsonContent(['id' => $task->getId()]);
-                $response->send();
+                $this->returnTaskInfo($task);
             }
             else
             {
@@ -49,19 +47,45 @@ class Tasks extends Component
         }
     }
 
+    public function read(...$params)
+    {
+        $outputTasks = [];
+        $taskIds = array_values(array_filter($params, function ($item) { return is_numeric($item); }));
+        if(!empty($taskIds))
+        {
+            $tasks = TasksModel::find(
+                [
+                    'conditions' => 'id IN ({taskIds:array})',
+                    'bind' => [
+                        'taskIds' => $taskIds
+                    ]
+                ]
+            );
+            foreach($tasks as $task)
+            {
+                $outputTasks[ $task->getId() ] = $task->toArray();
+            }
+        }
+        $response = new Response();
+        $response->setStatusCode(200, 'OK');
+        $response->setJsonContent($outputTasks);
+        $response->send();
+    }
+
     /**
      * Update the task with the given data
-     * 
-     * @param string $jsonInput a JSON string containing the updated task data
+     *
+     * @param int $taskId the task ID to update
      * 
      * @return nothing
      */
-    public function update(string $jsonInput)
+    public function update(int $taskId)
     {
+        $jsonInput = $this->request->getRawBody();
         if(!is_null($inputData = json_decode($jsonInput, true)))
         {
             $this->validate($inputData, 'update');
-            $task = TasksModel::findFirstById($inputData['id']);
+            $task = TasksModel::findFirstById($taskId);
             $saveData = [
                 'title' => $inputData['title'] ?? $task->getTitle(),
                 'description' => $inputData['description'] ?? $task->getDescription(),
@@ -69,10 +93,7 @@ class Tasks extends Component
             ];
             if($task->save($saveData))
             {
-                $response = new Response();
-                $response->setStatusCode(200, 'OK');
-                $response->setJsonContent(['id' => $task->getId()]);
-                $response->send();
+                $this->returnTaskInfo($task);
             }
             else
             {
@@ -83,6 +104,30 @@ class Tasks extends Component
         else
         {
             throw new UnsupportedMediaType('Update requests should send data in JSON format');
+        }
+    }
+
+    public function delete(int $taskId)
+    {
+        $task = TasksModel::findFirstById($taskId);
+        if($task)
+        {
+            $task->setParentId(null);
+            if($task->save())
+            {
+                $response = new Response();
+                $response->setStatusCode(200, 'OK');
+                $response->send();
+            }
+            else
+            {
+                $errorMessages = implode(", ", $task->getMessages());
+                throw new BadRequest($errorMessages);
+            }
+        }
+        else
+        {
+            throw new NotFound("The task to delete does not exist");
         }
     }
 
@@ -98,7 +143,6 @@ class Tasks extends Component
     {
         $requiredFields = [
             'create' => ['title', 'description'],
-            'update' => ['id']
         ];
         if(array_key_exists($action, $requiredFields))
         {
@@ -110,5 +154,20 @@ class Tasks extends Component
                 }
             }
         }
+    }
+
+    /**
+     * Sends the full task info in an HTTP response
+     * 
+     * @param TasksModel $task the task
+     * 
+     * @return nothing
+     */
+    private function returnTaskInfo(TasksModel $task)
+    {
+        $response = new Response();
+        $response->setStatusCode(200, 'OK');
+        $response->setJsonContent($task->toArray());
+        $response->send();
     }
 }

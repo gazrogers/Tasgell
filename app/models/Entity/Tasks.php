@@ -30,19 +30,6 @@ class Tasks extends \Phalcon\Mvc\Model
     protected $parentId;
 
     /**
-     * Method to set the value of field id
-     *
-     * @param integer $id
-     * @return $this
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    /**
      * Method to set the value of field title
      *
      * @param string $title

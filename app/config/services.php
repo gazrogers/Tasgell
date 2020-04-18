@@ -8,7 +8,7 @@ use Phalcon\Logger\Adapter\File as FileAdapter;
 /**
  * Shared configuration service
  */
-$di->setShared('config', new ConfigIni(APP_PATH . '/config/config.ini'));
+$di->setShared('config', new ConfigIni(BASE_PATH . '/app/config/config.ini'));
 
 /**
  * Sets the view component
@@ -17,7 +17,7 @@ $di->setShared('view', function () {
     $config = $this->getConfig();
 
     $view = new View();
-    $view->setViewsDir($config->application->viewsDir);
+    $view->setViewsDir(BASE_PATH . $config->application->viewsDir);
     return $view;
 });
 
@@ -61,7 +61,7 @@ $di->setShared('db', function () {
 $di->setShared(
     'logger', function () {
         $config = $this->getConfig();
-        return new FileAdapter($config->application->logsDir . 'application.log');
+        return new FileAdapter(BASE_PATH . $config->application->logsDir . 'application.log');
     }
 );
 
